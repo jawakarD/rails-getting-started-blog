@@ -1,21 +1,22 @@
 class ArticlesController < ApplicationController
-  http_basic_authenticate_with name: "dhh", password: "secret", except: [:index, :show]
+  before_action :authenticate_user!, except: [:index, :show]
 
   def new
     @article = Article.new
   end
 
   def index
-    @article = Article.all
-  
-    # respond_to do |format|
-    #   format.html # index.html.erb
-    #   format.json  { render json: @articles }
-    # end
+    @articles = Article.all
+    
+    respond_to do |format|
+      format.html # index.html.erb
+      format.json  { render json: @articles }
+    end
   end
 
   def create
-    @article = Article.new(article_params)
+    user = User.find(current_user.id)
+    @article = user.articles.create(article_params)
 
     if @article.save
       redirect_to @article
@@ -27,10 +28,10 @@ class ArticlesController < ApplicationController
   def show
     @article = Article.find(params[:id])
   
-    # respond_to do |format|
-    #   format.html # show.html.erb
-    #   format.json  { render json: @model_class_name }
-    # end
+    respond_to do |format|
+      format.html # show.html.erb
+      format.json  { render json: @model_class_name }
+    end
   end
 
   def edit
@@ -39,6 +40,8 @@ class ArticlesController < ApplicationController
 
   def update
     @article = Article.find(params[:id])
+
+    authorize @article
   
     respond_to do |format|
       if @article.update(article_params)
@@ -54,6 +57,8 @@ class ArticlesController < ApplicationController
 
   def destroy
     @article = Article.find(params[:id])
+
+    authorize @article
     @article.destroy
   
     respond_to do |format|
